@@ -69,7 +69,18 @@ public class MongoCli implements IMongo {
 		}
 		db = mongoClient.getDB(dbname);
 	}
-
+	
+	/**
+	 * 验证用户登陆
+	 */
+	public boolean authUser(String username,String password) {
+		if (db == null){
+			throw new NullPointerException();
+		}
+		char[] pwd = password.toCharArray();
+		return db.authenticate(username, pwd);
+	}
+	
 	/**
 	 * 获取集合
 	 * 
@@ -226,7 +237,10 @@ public class MongoCli implements IMongo {
 
 	@Override
 	public <T extends IDataRow> List<T> selectAll(MongoSelect select, Class<T> classType) throws Exception {
-
+		if (collection == null){
+			throw new NullPointerException();
+		}
+		
 		DBCursor cursor = collection.find(null, createSelectFields(select));
 
 		if (select.getOrderBy() != null) {
@@ -246,6 +260,9 @@ public class MongoCli implements IMongo {
 
 	@Override
 	public <T extends IDataRow> T selectOne(MongoSelect select, Class<T> classType) throws Exception {
+		if (collection == null){
+			throw new NullPointerException();
+		}
 		T en = classType.newInstance();
 		DBObject condition = createCondition(select.getCondition());
 		DBObject fields = createSelectFields(select);
@@ -261,6 +278,9 @@ public class MongoCli implements IMongo {
 
 	@Override
 	public <T extends IDataRow> List<T> selectList(MongoSelect select, Class<T> classType) throws Exception {
+		if (collection == null){
+			throw new NullPointerException();
+		}
 		DBCursor cursor = null;
 		DBObject fields = createSelectFields(select);
 		DBObject where = createCondition(select.getCondition());
@@ -296,12 +316,18 @@ public class MongoCli implements IMongo {
 
 	@Override
 	public WriteResult remove(Where where) throws Exception {
+		if (collection == null){
+			throw new NullPointerException();
+		}
 		DBObject condition = createCondition(where);
 		return collection.remove(condition, WriteConcern.SAFE);
 	}
 
 	@Override
 	public WriteResult updateE(Map<String, Object> fields, Where where) throws Exception {
+		if (collection == null){
+			throw new NullPointerException();
+		}
 		DBObject condition = createCondition(where);
 		DBObject updates = createUpdateFields(fields);
 
@@ -310,6 +336,9 @@ public class MongoCli implements IMongo {
 
 	@Override
 	public WriteResult update(Map<String, Object> fields, Where where) throws Exception {
+		if (collection == null){
+			throw new NullPointerException();
+		}
 		DBObject condition = createCondition(where);
 		DBObject en = collection.findOne(condition);
 		for (Entry<String, Object> itemEntry : fields.entrySet()) {
@@ -321,12 +350,18 @@ public class MongoCli implements IMongo {
 
 	@Override
 	public <T extends DataSerialize> WriteResult insert(T en) throws Exception {
+		if (collection == null){
+			throw new NullPointerException();
+		}
 		DBObject dbObject = en.Secialize();
 		return collection.insert(dbObject);
 	}
 
 	@Override
 	public <T extends DataSerialize> WriteResult insert(List<T> list) throws Exception {
+		if (collection == null){
+			throw new NullPointerException();
+		}
 		List<DBObject> dbObjects = new ArrayList<DBObject>();
 		for (T t : list) {
 			dbObjects.add(t.Secialize());
@@ -335,9 +370,29 @@ public class MongoCli implements IMongo {
 	}
 
 	@Override
-	public MapReduceOutput mapReduce(String map, String reduce, String outputTarget, MapReduceCommand.OutputType outputType, Where where) {
+	public MapReduceOutput mapReduce(String map, String reduce, String outputTarget, 
+			MapReduceCommand.OutputType outputType, Where where) throws Exception{
+		if (collection == null){
+			throw new NullPointerException();
+		}
 		DBObject cond = createCondition(where);
 		return collection.mapReduce(map, reduce, outputTarget, outputType, cond);
 	}
 	// ===========Setter Getter======================
+
+	@Override
+	public void close() throws Exception{
+		if (mongoClient == null){
+			throw new NullPointerException();
+		}
+		try {
+			mongoClient.close();
+		} catch (Exception e) {
+		}
+		finally{
+			collection = null;
+			mongoClient =null;
+			db = null;
+		}
+	}
 }

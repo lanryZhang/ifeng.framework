@@ -68,8 +68,9 @@ public interface IMongo {
 	 * @param outputType
 	 * @param where
 	 * @return
+	 * @throws Exception 
 	 */
-	public MapReduceOutput mapReduce(String map, String reduce, String outputTarget, OutputType outputType, Where where);
+	public MapReduceOutput mapReduce(String map, String reduce, String outputTarget, OutputType outputType, Where where) throws Exception;
 
 	/**
 	 * 完全更新符合条件的文档，只保留Map中的字段，其余字段删除
@@ -86,5 +87,10 @@ public interface IMongo {
 	 * @throws Exception
 	 */
 	public WriteResult updateE(Map<String, Object> fields, Where where) throws Exception;
-
+	
+	/**
+	 * 关闭链接
+	 * @throws Exception 
+	 */
+	public  void close() throws Exception;
 }
